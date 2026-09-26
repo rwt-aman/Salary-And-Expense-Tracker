@@ -177,7 +177,6 @@ Salary And Expense Tracker/
 │   └── vite.config.js              # Vite build configuration
 ├── screenshots/                    # All 9 walkthrough visual screenshots
 ├── .gitignore                      # Top-level workspace gitignore
-├── mysql_setup.sql                 # Optional local MySQL initialization script
 └── README.md                       # Comprehensive documentation
 ```
 

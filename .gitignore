@@ -25,6 +25,10 @@ build/
 coverage/
 .nyc_output/
 
+# ─── Database Scripts & Dumps (Not needed in deployment) ────────────────────
+*.sql
+mysql_setup.sql
+
 # ─── Logs & Debugging ───────────────────────────────────────────────────────
 logs/
 *.log
