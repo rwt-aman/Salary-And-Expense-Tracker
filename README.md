@@ -8,11 +8,15 @@
 
 ## 🌐 Live Demo & Deployment
 
-| Service | Status | Link |
-| :--- | :---: | :--- |
-| **Frontend Application** | [![Netlify](https://img.shields.io/badge/Netlify-Live_Demo-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://your-app-name.netlify.app) | `https://your-app-name.netlify.app` *(Paste your live link here)* |
-| **Backend REST API** | [![Render](https://img.shields.io/badge/Render-API_Service-46E3B7?style=flat-square&logo=render&logoColor=black)](https://your-api-name.onrender.com) | `https://your-api-name.onrender.com` *(Paste your Render URL here)* |
-| **Cloud Database** | [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://cloud.mongodb.com) | Hosted on MongoDB Atlas (AWS Cluster) |
+[![Live Application](https://img.shields.io/badge/🚀_Live_Demo-salary--and--expense--tracker.netlify.app-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://salary-and-expense-tracker.netlify.app/)
+[![Backend Deployment](https://img.shields.io/badge/Backend-Deployed_on_Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://render.com)
+[![Database](https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://cloud.mongodb.com)
+
+| Layer | Hosting Provider | Deployment Status | Live Access |
+| :--- | :--- | :---: | :--- |
+| **Frontend Application** | **Netlify** | [![Netlify](https://img.shields.io/badge/Netlify-Active-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://salary-and-expense-tracker.netlify.app/) | 🔗 [**https://salary-and-expense-tracker.netlify.app/**](https://salary-and-expense-tracker.netlify.app/) |
+| **Backend REST API** | **Render** | [![Render](https://img.shields.io/badge/Render-Deployed-46E3B7?style=flat-square&logo=render&logoColor=black)](https://render.com) | ⚡ Hosted & running on Render Web Service |
+| **Database** | **MongoDB Atlas** | [![MongoDB Atlas](https://img.shields.io/badge/Atlas-Connected-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://cloud.mongodb.com) | ☁️ Managed cloud cluster (AWS) |
 
 ---
 
