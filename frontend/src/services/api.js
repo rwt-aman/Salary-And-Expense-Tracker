@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const rawBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const defaultBaseURL =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://salary-and-expense-tracker-backend.onrender.com/api';
+
+const rawBaseURL = import.meta.env.VITE_API_URL || defaultBaseURL;
 const baseURL = rawBaseURL.endsWith('/api')
   ? rawBaseURL
   : `${rawBaseURL.replace(/\/+$/, '')}/api`;
