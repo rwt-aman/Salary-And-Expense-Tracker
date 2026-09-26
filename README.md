@@ -10,7 +10,7 @@
 
 | Service | Status | Link |
 | :--- | :---: | :--- |
-| **Frontend Application** | [![Netlify](https://salary-and-expense-tracker.netlify.app/)]|
+| **Frontend Application** | [![Netlify](https://img.shields.io/badge/Netlify-Live_Demo-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://your-app-name.netlify.app) | `https://your-app-name.netlify.app` *(Paste your live link here)* |
 | **Backend REST API** | [![Render](https://img.shields.io/badge/Render-API_Service-46E3B7?style=flat-square&logo=render&logoColor=black)](https://your-api-name.onrender.com) | `https://your-api-name.onrender.com` *(Paste your Render URL here)* |
 | **Cloud Database** | [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://cloud.mongodb.com) | Hosted on MongoDB Atlas (AWS Cluster) |
 
