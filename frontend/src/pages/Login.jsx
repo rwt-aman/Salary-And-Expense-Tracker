@@ -67,6 +67,47 @@ function Login() {
         {/* Right Form Panel */}
         <div className="ps-auth-form-side">
           <div className="ps-auth-card">
+            {/* Quick Demo Access Box */}
+            <div
+              style={{
+                background: 'rgba(99, 102, 241, 0.1)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: '10px',
+                padding: '14px 16px',
+                marginBottom: '20px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#818cf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>⚡</span> Instant Demo Account
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('demo123@gmail.com');
+                    setPassword('demo123');
+                  }}
+                  className="ps-btn"
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    background: '#6366f1',
+                    color: '#ffffff',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Auto-Fill Demo Credentials
+                </button>
+              </div>
+              <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                <div>Email: <strong style={{ color: '#ffffff', fontFamily: 'monospace' }}>demo123@gmail.com</strong></div>
+                <div>Password: <strong style={{ color: '#ffffff', fontFamily: 'monospace' }}>demo123</strong></div>
+              </div>
+            </div>
+
             <div className="ps-auth-header">
               <h2>Welcome back</h2>
               <p>Log in to access your budget overview</p>

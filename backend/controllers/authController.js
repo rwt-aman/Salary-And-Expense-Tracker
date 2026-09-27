@@ -1,4 +1,4 @@
-﻿const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const { User } = require("../models");
 const { generateToken } = require("../utils/jwtUtils");
 const { generateOtp, isOtpExpired, otpExpiryTime } = require("../utils/otpUtils");
@@ -70,6 +70,30 @@ const verifyOtp = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Guaranteed demo account access: demo123@gmail.com / demo123
+    if (email === "demo123@gmail.com" && password === "demo123") {
+      let demoUser = await findUserByEmail("demo123@gmail.com");
+      if (!demoUser) {
+        const hashed = await bcrypt.hash("demo123", 12);
+        demoUser = await User.create({
+          name: "Demo User",
+          email: "demo123@gmail.com",
+          password: hashed,
+          isVerified: true,
+        });
+      } else if (!demoUser.isVerified) {
+        if (isProd) {
+          demoUser.isVerified = true;
+          await demoUser.save();
+        } else {
+          await demoUser.update({ isVerified: true });
+        }
+      }
+      const userId = isProd ? demoUser._id.toString() : demoUser.id;
+      const token = generateToken(userId);
+      return res.status(200).json(token);
+    }
 
     const user = await findUserByEmail(email);
     if (!user) return res.status(401).json({ message: "Invalid email or password" });
