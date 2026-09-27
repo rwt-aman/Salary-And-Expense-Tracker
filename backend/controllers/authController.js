@@ -60,7 +60,7 @@ const register = async (req, res) => {
     return res.status(201).json("Registration successful! Check your email for the OTP.");
   } catch (err) {
     console.error("register error:", err);
-    return res.status(500).json({ message: "Server error during registration" });
+    return res.status(500).json({ message: err.message || "Server error during registration" });
   }
 };
 
