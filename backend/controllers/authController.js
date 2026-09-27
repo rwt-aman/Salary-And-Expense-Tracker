@@ -21,8 +21,34 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
 
     const existing = await findUserByEmail(email);
-    if (existing)
-      return res.status(409).json({ message: "Email already registered" });
+    if (existing) {
+      if (existing.isVerified) {
+        return res.status(409).json({ message: "Email already registered. Please log in." });
+      }
+
+      // User exists but has not completed OTP verification yet -> refresh OTP and resend!
+      const otp = generateOtp();
+      const otpExpiry = otpExpiryTime();
+      const hashed = await bcrypt.hash(password, 12);
+
+      if (isProd) {
+        existing.name = name;
+        existing.password = hashed;
+        existing.otp = otp;
+        existing.otpExpiresAt = otpExpiry;
+        await existing.save();
+      } else {
+        await existing.update({
+          name,
+          password: hashed,
+          otp,
+          otpExpiresAt: otpExpiry,
+        });
+      }
+
+      await sendOtpEmail(email, otp);
+      return res.status(200).json("Verification code sent to your email!");
+    }
 
     const hashed = await bcrypt.hash(password, 12);
     const otp = generateOtp();
