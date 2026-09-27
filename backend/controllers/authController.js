@@ -46,8 +46,14 @@ const register = async (req, res) => {
         });
       }
 
-      await sendOtpEmail(email, otp);
-      return res.status(200).json("Verification code sent to your email!");
+      const emailResult = await sendOtpEmail(email, otp);
+      return res.status(200).json({
+        message: emailResult.success
+          ? "Verification code sent to your email!"
+          : "Verification code generated! Check your email or use the code below.",
+        emailSent: emailResult.success,
+        otp: emailResult.success ? undefined : otp,
+      });
     }
 
     const hashed = await bcrypt.hash(password, 12);
@@ -55,9 +61,15 @@ const register = async (req, res) => {
     const otpExpiry = otpExpiryTime();
 
     await User.create({ name, email, password: hashed, otp, otpExpiresAt: otpExpiry, isVerified: false });
-    await sendOtpEmail(email, otp);
+    const emailResult = await sendOtpEmail(email, otp);
 
-    return res.status(201).json("Registration successful! Check your email for the OTP.");
+    return res.status(201).json({
+      message: emailResult.success
+        ? "Registration successful! Check your email for the OTP."
+        : "Registration successful! Check your email or use the code below.",
+      emailSent: emailResult.success,
+      otp: emailResult.success ? undefined : otp,
+    });
   } catch (err) {
     console.error("register error:", err);
     return res.status(500).json({ message: err.message || "Server error during registration" });

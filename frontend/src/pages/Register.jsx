@@ -57,9 +57,15 @@ function Register() {
 
     setLoading(true);
     try {
-      await api.post('/auth/register', { name, email, password });
+      const res = await api.post('/auth/register', { name, email, password });
       setOtpSent(true);
-      setSuccess(`Verification code sent to ${email}! Please enter it below.`);
+      const data = res.data;
+      if (data?.otp) {
+        setSuccess(`Account registered! (Demo/Test Mode: Your verification code is ${data.otp})`);
+        setOtp(String(data.otp));
+      } else {
+        setSuccess(data?.message || `Verification code sent to ${email}! Please enter it below.`);
+      }
     } catch (err) {
       const errData = err.response?.data;
       setError(typeof errData === 'string' ? errData : errData?.message || 'Registration failed');
@@ -100,8 +106,14 @@ function Register() {
     setSuccess('');
     setResending(true);
     try {
-      await api.post('/auth/register', { name, email, password });
-      setSuccess('A new 6-digit OTP has been sent to your email.');
+      const res = await api.post('/auth/register', { name, email, password });
+      const data = res.data;
+      if (data?.otp) {
+        setSuccess(`New verification code generated! Code: ${data.otp}`);
+        setOtp(String(data.otp));
+      } else {
+        setSuccess(data?.message || 'A new 6-digit OTP has been sent to your email.');
+      }
     } catch (err) {
       const errData = err.response?.data;
       setError(typeof errData === 'string' ? errData : errData?.message || 'Failed to resend code');
