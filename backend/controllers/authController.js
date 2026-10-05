@@ -8,9 +8,10 @@ const isProd = process.env.NODE_ENV === "production";
 
 // Helper: findOne user by email (works for both Mongoose & Sequelize)
 const findUserByEmail = async (email) => {
+  const cleanEmail = email ? String(email).trim().toLowerCase() : "";
   return isProd
-    ? User.findOne({ email })
-    : User.findOne({ where: { email } });
+    ? User.findOne({ email: cleanEmail })
+    : User.findOne({ where: { email: cleanEmail } });
 };
 
 // POST /api/auth/register
@@ -20,7 +21,10 @@ const register = async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
 
-    const existing = await findUserByEmail(email);
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanName = String(name).trim();
+
+    const existing = await findUserByEmail(cleanEmail);
     if (existing) {
       if (existing.isVerified) {
         return res.status(409).json({ message: "Email already registered. Please log in." });
@@ -32,21 +36,22 @@ const register = async (req, res) => {
       const hashed = await bcrypt.hash(password, 12);
 
       if (isProd) {
-        existing.name = name;
+        existing.name = cleanName;
         existing.password = hashed;
         existing.otp = otp;
         existing.otpExpiresAt = otpExpiry;
         await existing.save();
       } else {
         await existing.update({
-          name,
+          name: cleanName,
           password: hashed,
           otp,
           otpExpiresAt: otpExpiry,
         });
       }
 
-      const emailResult = await sendOtpEmail(email, otp);
+      console.log(`[register/resend] Generated new OTP: "${otp}" for "${cleanEmail}"`);
+      const emailResult = await sendOtpEmail(cleanEmail, otp);
       return res.status(200).json({
         message: emailResult.success
           ? "Verification code sent to your email!"
@@ -60,8 +65,9 @@ const register = async (req, res) => {
     const otp = generateOtp();
     const otpExpiry = otpExpiryTime();
 
-    await User.create({ name, email, password: hashed, otp, otpExpiresAt: otpExpiry, isVerified: false });
-    const emailResult = await sendOtpEmail(email, otp);
+    await User.create({ name: cleanName, email: cleanEmail, password: hashed, otp, otpExpiresAt: otpExpiry, isVerified: false });
+    console.log(`[register/new] Generated OTP: "${otp}" for "${cleanEmail}"`);
+    const emailResult = await sendOtpEmail(cleanEmail, otp);
 
     return res.status(201).json({
       message: emailResult.success
@@ -80,12 +86,23 @@ const register = async (req, res) => {
 const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : "";
+    const cleanOtp = otp ? String(otp).trim() : "";
 
-    const user = await findUserByEmail(email);
+    const user = await findUserByEmail(cleanEmail);
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.isVerified) return res.status(400).json({ message: "Account already verified" });
-    if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP code" });
-    if (isOtpExpired(user.otpExpiresAt)) return res.status(400).json({ message: "OTP has expired. Please register again." });
+
+    console.log(`[verifyOtp] Validating: Email="${cleanEmail}" | DB_OTP="${user.otp}" | Submitted_OTP="${cleanOtp}"`);
+
+    if (String(user.otp).trim() !== cleanOtp) {
+      console.warn(`[verifyOtp] Mismatch: DB has "${user.otp}", but user submitted "${cleanOtp}"`);
+      return res.status(400).json({ message: "Invalid OTP code" });
+    }
+
+    if (isOtpExpired(user.otpExpiresAt)) {
+      return res.status(400).json({ message: "OTP has expired. Please register again." });
+    }
 
     // Update for both Mongoose and Sequelize
     if (isProd) {
@@ -97,6 +114,7 @@ const verifyOtp = async (req, res) => {
       await user.update({ isVerified: true, otp: null, otpExpiresAt: null });
     }
 
+    console.log(`[verifyOtp] Successfully verified user "${cleanEmail}"`);
     return res.status(200).json("Email verified successfully! You can now log in.");
   } catch (err) {
     console.error("verifyOtp error:", err);
