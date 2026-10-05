@@ -8,7 +8,49 @@ const sendOtpEmail = async (email, otp) => {
   console.log(`   OTP: ${otp}`);
   console.log(`========================================\n`);
 
-  // Only send real email if email credentials are configured
+  const htmlContent = `
+    <div style="font-family: sans-serif; max-width: 480px; margin: auto; padding: 32px; background: #0f172a; border-radius: 12px; color: #f8fafc;">
+      <h2 style="color: #6366f1; margin-bottom: 8px;">PaySplit</h2>
+      <p style="color: #94a3b8; margin-bottom: 24px;">Your one-time verification code:</p>
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; text-align: center; font-size: 36px; font-family: monospace; letter-spacing: 12px; color: #f8fafc; font-weight: 700;">
+        ${otp}
+      </div>
+      <p style="color: #64748b; font-size: 13px; margin-top: 24px;">This code expires in 10 minutes. Do not share it with anyone.</p>
+    </div>
+  `;
+
+  // 1. Preferred: Brevo HTTPS API (Works 100% on Render/Cloud with zero port blocks & under 1s delivery)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const senderEmail = process.env.EMAIL_USER || process.env.EMAIL_FROM || "otpservice01@gmail.com";
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY.trim(),
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { name: "PaySplit", email: senderEmail },
+          to: [{ email }],
+          subject: "PaySplit – Your Verification Code",
+          htmlContent,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log("✅ OTP Email dispatched successfully via Brevo API! MessageId:", data.messageId);
+        return { success: true, messageId: data.messageId };
+      } else {
+        console.error("❌ Brevo API returned error:", data);
+      }
+    } catch (err) {
+      console.error("❌ Failed to send OTP email via Brevo API:", err.message);
+    }
+  }
+
+  // 2. Fallback: SMTP via Nodemailer
   if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "your_email@gmail.com") {
     console.log("ℹ️  EMAIL_USER not configured. Skipping SMTP dispatch.");
     return { success: false, reason: "NOT_CONFIGURED" };
@@ -49,16 +91,7 @@ const sendOtpEmail = async (email, otp) => {
       from: `"PaySplit" <${cleanUser}>`,
       to: email,
       subject: "PaySplit – Your Verification Code",
-      html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: auto; padding: 32px; background: #0f172a; border-radius: 12px; color: #f8fafc;">
-          <h2 style="color: #6366f1; margin-bottom: 8px;">PaySplit</h2>
-          <p style="color: #94a3b8; margin-bottom: 24px;">Your one-time verification code:</p>
-          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; text-align: center; font-size: 36px; font-family: monospace; letter-spacing: 12px; color: #f8fafc; font-weight: 700;">
-            ${otp}
-          </div>
-          <p style="color: #64748b; font-size: 13px; margin-top: 24px;">This code expires in 10 minutes. Do not share it with anyone.</p>
-        </div>
-      `,
+      html: htmlContent,
     });
 
     console.log("✅ OTP Email dispatched successfully! MessageId:", info.messageId);
@@ -70,3 +103,4 @@ const sendOtpEmail = async (email, otp) => {
 };
 
 module.exports = { sendOtpEmail };
+
