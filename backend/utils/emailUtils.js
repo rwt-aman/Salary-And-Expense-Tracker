@@ -20,37 +20,47 @@ const sendOtpEmail = async (email, otp) => {
   `;
 
   // 1. Preferred: Brevo HTTPS API (Works 100% on Render/Cloud with zero port blocks & under 1s delivery)
-  if (process.env.BREVO_API_KEY) {
+  let rawKey = (process.env.BREVO_API_KEY || "").trim();
+  rawKey = rawKey.replace(/^['"]|['"]$/g, ""); // Strip any surrounding quotes
+
+  if (rawKey) {
+    // Automatically add 'xkeysib-' prefix if user pasted key without it
+    const apiKey = rawKey.startsWith("xkeysib-") ? rawKey : `xkeysib-${rawKey}`;
+    const senderEmail = (process.env.EMAIL_USER || process.env.EMAIL_FROM || "otpservice01@gmail.com").trim();
+
     try {
-      const senderEmail = process.env.EMAIL_USER || process.env.EMAIL_FROM || "otpservice01@gmail.com";
+      console.log(`📡 [Brevo] Sending OTP to ${email} from ${senderEmail}...`);
       const response = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
-          "api-key": process.env.BREVO_API_KEY.trim(),
+          "api-key": apiKey,
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
         body: JSON.stringify({
           sender: { name: "PaySplit", email: senderEmail },
-          to: [{ email }],
+          to: [{ email: email.trim().toLowerCase() }],
           subject: "PaySplit – Your Verification Code",
           htmlContent,
         }),
+        signal: AbortSignal.timeout(6000), // Max 6-second timeout - will never hang!
       });
 
       const data = await response.json();
       if (response.ok) {
-        console.log("✅ OTP Email dispatched successfully via Brevo API! MessageId:", data.messageId);
+        console.log(`✅ [Brevo] OTP Email (${otp}) dispatched successfully! MessageId:`, data.messageId);
         return { success: true, messageId: data.messageId };
       } else {
-        console.error("❌ Brevo API returned error:", data);
+        console.error("❌ [Brevo] API returned error:", data);
+        return { success: false, error: data.message || "Brevo delivery error" };
       }
     } catch (err) {
-      console.error("❌ Failed to send OTP email via Brevo API:", err.message);
+      console.error("❌ [Brevo] Failed to send OTP email:", err.message);
+      return { success: false, error: err.message };
     }
   }
 
-  // 2. Fallback: SMTP via Nodemailer
+  // 2. Fallback: SMTP via Nodemailer (Local development only, strict 4s timeout)
   if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "your_email@gmail.com") {
     console.log("ℹ️  EMAIL_USER not configured. Skipping SMTP dispatch.");
     return { success: false, reason: "NOT_CONFIGURED" };
@@ -85,7 +95,12 @@ const sendOtpEmail = async (email, otp) => {
           },
         };
 
-    const transporter = nodemailer.createTransport(transportConfig);
+    const transporter = nodemailer.createTransport({
+      ...transportConfig,
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 4000,
+    });
 
     const info = await transporter.sendMail({
       from: `"PaySplit" <${cleanUser}>`,
